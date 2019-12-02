@@ -1,2 +1,7 @@
-# lambda_mailNotify
-lambda that takes a payload from cloudwatch, extracts the message in xml, converts to json and assemble a table html for mail sending.
+# Lambda for mail Notification 
+
+Takes a payload triggered from cloudwatch logs. 
+In this case the event messages are in xml and will be converted to json for better manipulation.
+
+
+enjoy!
