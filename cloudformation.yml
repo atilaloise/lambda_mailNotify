@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: >-
+  This is a sample template for lambda-backed custom resource. Runtime for
+  Lambda function 
+
+Parameters:
+
+  pBucketName: 
+    Description: The bucket that contains the lambda code
+    Type: String
+    MinLength: 1
+    MaxLength: 100
+    AllowedPattern: ^[a-zA-Z0-9]*$
+    Default: mandiclambdas
+
+  pFileName:
+    Description: The name of Zip file with lambda code
+    Type: String
+    MinLength: 1
+    MaxLength: 100
+    Default: oraclenotify.zip
+
+  pLogGroupName:
+    Description: Path to log group
+    Type: String
+    MinLength: 1
+    MaxLength: 300
+    Default: "/aws/rds/instance/bdoracle/audit"
+
+  pFilters:
+    Description: Filters for triggering lambda
+    Type: String
+    MinLength: 1
+    MaxLength: 200
+    Default: "?ALTER USER ?alter user ?AlTeR UsEr"
+
+  
+Resources:
+  
+  rLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      Policies:
+      - PolicyName: root
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:*
+            - ses:*
+            Resource: '*'
+
+  rLambdaOraclenotify:
+    Type: AWS::Lambda::Function
+    Properties:
+      Role:
+        Fn::GetAtt: rLambdaRole.Arn
+      Runtime: python3.7
+      Timeout: 30
+      Handler: lambda_function.lambda_handler
+      Code:
+        S3Bucket: 
+          Ref: pBucketName
+        S3Key: 
+          Ref: pFileName
+  
+  ExecutePermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName:
+        Fn::GetAtt: rLambdaOraclenotify.Arn
+      Principal: 'logs.amazonaws.com'
+
+  rLambdaCWLogs:
+    Type: AWS::Logs::SubscriptionFilter
+    Properties:
+      #RoleArn:
+      #  Fn::GetAtt:rLambdaRole.Arn
+      FilterPattern:
+        Ref: pFilters
+      LogGroupName:
+        Ref: pLogGroupName
+      DestinationArn:
+        Fn::GetAtt: rLambdaOraclenotify.Arn
+    

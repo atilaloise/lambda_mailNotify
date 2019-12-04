@@ -41,7 +41,12 @@ After this, click in `ADD`
 
 ### With CLOUD FORMATION
 
-`COMING SOON`
+- Create a S3 bucket ant upload the zip file with lambda's code
+- Go to Aws Console and access cloud formation service
+- Create a new stack and upload the `cloudformation.yml` file
+- See the Magic
+
+![ZIP UPLOAD](images/magic.gif)
 
 # How It works
 
